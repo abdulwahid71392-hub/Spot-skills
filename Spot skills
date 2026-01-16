@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spot Skills</title>
+<style>
+  body { margin:0; font-family:sans-serif; background:#f5f5f5; }
+
+  /* Header */
+  header { display:flex; align-items:center; padding:8px; background:white; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:5; }
+  header img { height:32px; margin-right:8px; }
+  #searchBar { flex:1; padding:6px 10px; border-radius:25px; border:1px solid #ccc; background:#f0f2f5; outline:none; font-size:14px; }
+  header button { font-size:18px; margin-left:10px; background:none; border:none; }
+
+  /* Story bar */
+  .story-bar { display:flex; overflow-x:auto; padding:8px; gap:10px; background:white; }
+  .story { min-width:60px; height:60px; border-radius:50%; background:#ddd; display:flex; justify-content:center; align-items:center; font-size:12px; }
+
+  /* Category bar */
+  .category-bar { display:flex; overflow-x:auto; gap:8px; padding:8px; background:white; border-top:1px solid #eee; }
+  button.cat { padding:6px 12px; border-radius:15px; border:1px solid #999; background:white; white-space:nowrap; }
+
+  /* Feed */
+  .feed { padding:8px; margin-bottom:70px; }
+  .post { background:white; padding:10px; border-radius:8px; margin-bottom:10px; }
+  .post p { margin:0; }
+  .post small { display:block; color:gray; margin-top:6px; }
+
+  /* Bottom nav */
+  nav { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #ddd; display:flex; justify-content:space-around; padding:10px 0; }
+  nav a { text-decoration:none; font-size:20px; }
+
+  /* Login popup */
+  #loginPop { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; }
+  #loginPop div { background:white; padding:20px; border-radius:8px; width:80%; max-width:300px; }
+
+  /* Search results */
+  #searchResults { background:white; border-bottom:1px solid #ddd; }
+  .result { padding:10px; border-bottom:1px solid #eee; cursor:pointer; font-size:15px; }
+  .highlight { background:yellow; font-weight:bold; }
+
+  /* Messenger */
+  #messagesPanel { position:fixed; inset:0; background:white; display:none; flex-direction:row; z-index:10; }
+  #chatSidebar { width:35%; max-width:280px; border-right:1px solid:#ddd; overflow-y:auto; padding:10px; }
+  #chatSidebar h3 { margin-top:0; }
+  #chatSidebar div { padding:8px; background:#f2f2f2; border-radius:8px; margin-bottom:6px; cursor:pointer; }
+  #chatSidebar div:hover { background:#e3e3e3; }
+
+  #chatArea { flex:1; display:flex; flex-direction:column; }
+  #chatHeader { padding:8px 12px; border-bottom:1px solid #ddd; display:flex; align-items:center; gap:12px; }
+  #chatHeader button { font-size:18px; background:none; border:none; cursor:pointer; }
+  #chatWindow { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+  .bubble { padding:8px 12px; border-radius:18px; max-width:75%; font-size:15px; display:inline-block; }
+  .me { background:#0084ff; color:white; align-self:flex-end; }
+  .them { background:#e5e5ea; color:black; align-self:flex-start; }
+  #msgBar { padding:8px; border-top:1px solid #ddd; display:flex; gap:6px; background:white; }
+  #msgBar input { flex:1; padding:8px; border-radius:20px; border:1px solid #aaa; outline:none; }
+  #msgBar button { font-size:18px; background:none; border:none; cursor:pointer; }
+
+  /* Profile panel */
+  #profilePanel { display:none; position:fixed; inset:0; background:white; z-index:15; overflow-y:auto; }
+  #profilePanel header { padding:12px; border-bottom:1px solid #ddd; display:flex; align-items:center; justify-content:space-between; }
+  #profilePanel img { width:80px; height:80px; border-radius:50%; margin-bottom:8px; }
+  #profilePanel .stats { display:flex; justify-content:space-around; padding:12px; border-top:1px solid #eee; border-bottom:1px solid #eee; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <img src="logo.png" alt="logo">
+  <input id="searchBar" placeholder="Search Spot Skills..." autocomplete="off">
+  <button onclick="openMessages()">💬</button>
+</header>
+
+<!-- Search results -->
+<div id="searchResults"></div>
+
+<!-- Stories -->
+<div class="story-bar" id="stories"></div>
+
+<!-- Categories -->
+<div class="category-bar" id="categories"></div>
+
+<!-- Feed -->
+<div class="feed" id="feed"></div>
+
+<!-- Bottom navigation -->
+<nav>
+  <a href="#">🏠</a>
+  <a href="#" onclick="openMessages()">👥</a>
+  <a href="#" onclick="newPost()">➕</a>
+  <a href="#">🔔</a>
+  <a href="#">🙂</a> <!-- Profile -->
+</nav>
+
+<!-- Login popup -->
+<div id="loginPop">
+  <div>
+    <h3>Login required</h3>
+    <p>Sign in to continue</p>
+    <button onclick="doLogin()">Login</button>
+    <button onclick="closePop()">Cancel</button>
+  </div>
+</div>
+
+<!-- Messenger -->
+<div id="messagesPanel">
+  <div id="chatSidebar"></div>
+  <div id="chatArea">
+    <div id="chatHeader"></div>
+    <div id="chatWindow"></div>
+    <div id="msgBar">
+      <button onclick="attach()">📎</button>
+      <button onclick="voice()">🎤</button>
+      <input id="msgInput" placeholder="Aa">
+      <button onclick="sendMsg()">➡️</button>
+      <input type="file" id="filePick" style="display:none" accept="image/*,video/*">
+    </div>
+  </div>
+</div>
+
+<!-- Profile Panel -->
+<div id="profilePanel">
+  <div style="padding:12px; border-bottom:1px solid #ddd; display:flex; align-items:center; justify-content:space-between;">
+    <button onclick="closeProfile()" style="font-size:18px; background:none; border:none;">⬅️</button>
+    <b id="profileName">Profile</b>
+    <div></div>
+  </div>
+  <div style="padding:12px; text-align:center;">
+    <img id="profilePic" src="logo.png">
+    <h3 id="profileUsername">@User</h3>
+    <p id="profileBio">This is user bio. Add something interesting!</p>
+  </div>
+  <div class="stats">
+    <div><b id="postCount">0</b><br>Posts</div>
+    <div><b id="followersCount">0</b><br>Followers</div>
+    <div><b id="followingCount">0</b><br>Following</div>
+  </div>
+  <div id="profilePosts" style="padding:8px; display:flex; flex-direction:column; gap:8px;"></div>
+</div>
+
+<script>
+/* ----------------- Demo Data ----------------- */
+const storiesData = ["Ali","Sara","John","Teacher A","Dev","UX","Sam"];
+const categoriesData = ["Amazon FBA","Alibaba sourcing","Freelancing","Trading","Languages","Marketing","Design","Programming","E-commerce","SEO","Video editing","AI","Cybersecurity","Finance","Podcast","Print on Demand","More..."];
+const postsData = [
+  {user:"Teacher A", text:"New SEO course starts today!", cat:"SEO"},
+  {user:"Sara", text:"Learning video editing 💻", cat:"Video editing"},
+];
+
+/* ----------------- Render Stories ----------------- */
+const stories = document.getElementById("stories");
+storiesData.forEach(s=>{
+  let el = document.createElement("div");
+  el.className="story"; el.textContent=s;
+  stories.appendChild(el);
+});
+
+/* ----------------- Render Categories ----------------- */
+const categories = document.getElementById("categories");
+categoriesData.forEach(c=>{
+  let b=document.createElement("button"); b.className="cat"; b.textContent=c;
+  categories.appendChild(b);
+});
+let addBtn = document.createElement("button"); addBtn.className="cat"; addBtn.textContent="+ Add Category"; categories.appendChild(addBtn);
+
+/* ----------------- Render Feed ----------------- */
+const feed = document.getElementById("feed");
+function renderFeed(list=postsData){
+  feed.innerHTML="";
+  list.forEach(p=>{
+    let card=document.createElement("div"); card.className="post";
+    card.innerHTML=`<p><b>@${p.user}</b> #${p.cat}<br>${p.text}</p><small>❤️ Like · 💬 Comment</small>`;
+    card.onclick=needLogin;
+    feed.appendChild(card);
+  });
+}
+renderFeed();
+
+/* ----------------- Search ----------------- */
+const searchBar = document.getElementById("searchBar");
+const searchResults = document.getElementById("searchResults");
+searchBar.addEventListener("input", function() {
+  const q = this.value.toLowerCase().trim();
+  searchResults.innerHTML="";
+
+  if(!q) { renderFeed(postsData); return; }
+
+  const postMatches = postsData.filter(p=>p.user.toLowerCase().includes(q)||p.text.toLowerCase().includes(q)||p.cat.toLowerCase().includes(q));
+  const catMatches = categoriesData.filter(c=>c.toLowerCase().includes(q));
+  const storyMatches = storiesData.filter(s=>s.toLowerCase().includes(q));
+
+  const totalResults = postMatches.length + catMatches.length + storyMatches.length;
+  if(totalResults===0){
+    searchResults.innerHTML='<p style="text-align:center;color:gray;margin:10px;">No results found 😕</p>';
+    return;
+  }
+
+  storyMatches.forEach(s=>{
+    const div = document.createElement("div"); div.className="result"; div.innerHTML=`📘 Story: <b>${s}</b>`;
+    searchResults.appendChild(div);
+  });
+  catMatches.forEach(c=>{
+    const div = document.createElement("div"); div.className="result"; div.innerHTML=`🗂 Category: <b>${c}</b>`;
+    searchResults.appendChild(div);
+  });
+  postMatches.forEach(p=>{
+    const div = document.createElement("div"); div.className="result";
+    div.innerHTML=`<b>@${p.user}</b> #${p.cat}<br>${p.text}`;
+    searchResults.appendChild(div);
+  });
+});
+
+/* ----------------- Login ----------------- */
+function needLogin(){ document.getElementById("loginPop").style.display="flex"; }
+function closePop(){ document.getElementById("loginPop").style.display="none"; }
+function doLogin(){ alert("Login later"); closePop(); }
+function newPost(){ needLogin(); }
+
+/* ----------------- Messenger ----------------- */
+const contactList = ["Ali","Sara","Teacher A","Developer","Support"];
+let chatMsgs = {}, activeChat = null;
+
+function openMessages(){
+  document.getElementById("messagesPanel").style.display="flex";
+  const sidebar = document.getElementById("chatSidebar");
+  sidebar.innerHTML="<h3>Chats</h3>";
+  contactList.forEach(c=>{
+    let div=document.createElement("div"); div.textContent=c;
+    div.onclick=()=>openChat(c);
+    sidebar.appendChild(div);
+  });
+  document.getElementById("chatArea").style.display="none";
+}
+
+function openChat(name){
+  activeChat = name;
+  if(!chatMsgs[name]) chatMsgs[name]=[];
+  document.getElementById("chatHeader").innerHTML=`<button onclick="back()">⬅️</button><b>${name}</b>`;
+  document.getElementById("chatArea").style.display="flex";
+  renderChat();
+}
+
+function back(){ document.getElementById("chatArea").style.display="none"; }
+
+function renderChat(){
+  const win = document.getElementById("chatWindow");
+  win.innerHTML="";
+  chatMsgs[activeChat].forEach(m=>{
+    const div = document.createElement("div");
+    div.className="bubble "+(m.me?"me":"them");
+    div.textContent = m.text;
+    win.appendChild(div);
+  });
+  win.scrollTop=win.scrollHeight;
+}
+
+function sendMsg(){
+  const inp = document.getElementById("msgInput");
+  const t = inp.value.trim();
+  if(!t||!activeChat) return;
+  chatMsgs[activeChat].push({text:t,me:true});
+  inp.value="";
+  renderChat();
+}
+
+function attach(){ document.getElementById("filePick").click(); }
+document.getElementById("filePick").addEventListener("change",function(){
+  if(!activeChat) return;
+  chatMsgs[activeChat].push({text:"📎 File sent",me:true});
+  renderChat();
+});
+function voice(){ if(!activeChat) {return;} chatMsgs[activeChat].push({text:"🎤 Voice message",me:true}); renderChat(); }
+
+/* ----------------- Profile ----------------- */
+const profilePanel = document.getElementById("profilePanel");
+const profilePostsEl = document.getElementById("profilePosts");
+
+document.querySelector("nav a:last-child").onclick = function(e){
+  e.preventDefault();
+  openProfile({
+    name: "Abdul Wahid",
+    username: "AbdulW",
+    bio: "Learning digital skills worldwide!",
+    pic: "logo.png",
+    posts: postsData
+  });
+};
+
+function openProfile(user){
+  profilePanel.style.display = "block";
+  document.getElementById("profileName").textContent = user.name;
+  document.getElementById("profileUsername").textContent = "@" + user.username;
+  document.getElementById("profileBio").textContent = user.bio;
+  document.getElementById("profilePic").src = user.pic;
+
+  document.getElementById("postCount").textContent = user.posts.length;
+  document.getElementById("followersCount").textContent = 123; 
+  document.getElementById("followingCount").textContent = 456;
+
+  profilePostsEl.innerHTML = "";
+  user.posts.forEach(p=>{
+    let div = document.createElement("div");
+    div.className="post";
+    div.innerHTML=`<p><b>@${p.user}</b> #${p.cat}<br>${p.text}</p><small>❤️ Like · 💬 Comment</small>`;
+    profilePostsEl.appendChild(div);
+  });
+}
+
+function closeProfile(){
+  profilePanel.style.display = "none";
+}
+</script>
+
+</body>
+</html>
